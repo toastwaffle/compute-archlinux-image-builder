@@ -64,23 +64,15 @@ ClientAliveInterval 420
 Port 22
 Protocol 2
 
-UsePrivilegeSeparation yes
-
-# Lifetime and size of ephemeral version 1 server key
-KeyRegenerationInterval 3600
-ServerKeyBits 768
-
 SyslogFacility AUTH
 LogLevel INFO
 
 LoginGraceTime 120
 StrictModes yes
 
-RSAAuthentication yes
 PubkeyAuthentication yes
 
 IgnoreRhosts yes
-RhostsRSAAuthentication no
 HostbasedAuthentication no
 
 PermitEmptyPasswords no
