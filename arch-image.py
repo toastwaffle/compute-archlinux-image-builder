@@ -247,7 +247,7 @@ def main():
   SetupSsh()
   SetupFail2ban()
   SetupAccounts(args)
-  #InstallImportedPackages(args['packages_dir'])
+  InstallImportedPackages(args['packages_dir'])
   InstallGcePackages(args['packages_dir'])
   ConfigMessageOfTheDay()
   ConfigureSecurity()
@@ -427,9 +427,9 @@ def ConfigureSerialPortOutput():
 
 
 def InstallImportedPackages(packages_dir):
-  aur_packages_dir = os.path.join(packages_dir, 'aur')
-  for aur_package in os.listdir(aur_packages_dir):
-    utils.Pacman('-U', aur_package, cwd=aur_packages_dir)
+  for aur_package in os.listdir(packages_dir):
+    utils.Pacman(['-U', aur_package], cwd=packages_dir)
+  utils.DeleteDirectory(packages_dir)
 
 
 def InstallGcePackages(packages_dir):

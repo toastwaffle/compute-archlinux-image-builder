@@ -95,9 +95,8 @@ def ConfigureArchInstall(args, mount_path, parent_path, disk_uuid, aur_packages)
   packages_dir = utils.CreateTempDirectory(mount_path)
   utils.Run(['git', 'clone', COMPUTE_IMAGE_PACKAGES_GIT_URL, packages_dir])
   utils.CreateDirectory(os.path.join(mount_path, ''))
-  aur_packages_dir = os.path.join(packages_dir, 'aur')
   for aur_package in aur_packages:
-    utils.CopyFiles(aur_package, aur_packages_dir + '/')
+    utils.CopyFiles(aur_package, packages_dir + '/')
   packages_dir = os.path.relpath(packages_dir, mount_path)
   params = {
     'packages_dir': '/%s' % packages_dir,
