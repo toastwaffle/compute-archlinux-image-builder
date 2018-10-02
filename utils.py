@@ -278,7 +278,7 @@ def UpdateAllPackages():
   Pacman(['-Syyu'])
 
 def InstallPackages(package_list):
-  Pacman(['-S'] + package_list)
+  Pacman(['-S', '--needed'] + package_list)
 
 
 def SetupArchLocale():
