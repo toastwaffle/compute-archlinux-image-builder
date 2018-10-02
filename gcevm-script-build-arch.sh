@@ -13,15 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Build an Arch Linux image from within a GCE Debian VM.
+# Build an Arch Linux image from within a GCE VM.
+
+function GetMetadata {
+  cat << EOF | python3
+from google_compute_engine import metadata_watcher
+
+watcher = metadata_watcher.MetadataWatcher()
+print(watcher.GetMetadata('instance/attributes')['${1}'])
+EOF
+}
 
 BUILDER_ROOT=/mnt/archongce/source
-INSTANCE_NAME=$(/usr/share/google/get_metadata_value attributes/instance-name)
-ZONE_NAME=$(/usr/share/google/get_metadata_value attributes/instance-zone)
-SCRIPT_PARAMS=$(/usr/share/google/get_metadata_value attributes/script-params)
+INSTANCE_NAME=$(GetMetadata instance-name)
+ZONE_NAME=$(GetMetadata instance-zone)
+SCRIPT_PARAMS=$(GetMetadata script-params)
 SCRIPT_PARAMS="--verbose --register ${SCRIPT_PARAMS}"
-GIT_SOURCE_URI=$(/usr/share/google/get_metadata_value attributes/git-source-uri)
-REMOTE_IMAGE=$(echo "i = '${SCRIPT_PARAMS}'.split(); print i[i.index('--upload') + 1]" | python)
+GIT_SOURCE_URI=$(GetMetadata git-source-uri)
+REMOTE_IMAGE=$(echo "i = '${SCRIPT_PARAMS}'.split(); print(i[i.index('--upload') + 1])" | python3)
 
 echo "Builder Root: ${BUILDER_ROOT}"
 echo "Instance Name: ${INSTANCE_NAME}"
@@ -37,24 +46,6 @@ mkdir -p ${BUILDER_ROOT}
 echo "Updating Cloud SDK"
 yes | gcloud components update
 
-function InstallDependenciesForDebian {
-  echo "Installing Dependencies (Debian)"
-  apt-get update
-  apt-get install -y -qq python3 haveged git
-}
-
-function InstallDependenciesForRedhat {
-  echo "Installing Dependencies (Redhat)"
-  rpm -Uvh http://download.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
-  yum install -y python3 haveged git
-}
-if [ -f /etc/redhat-release ]
-then
-  InstallDependenciesForRedhat
-else
-  InstallDependenciesForDebian
-fi
-
 echo "Getting source code..."
 git clone ${GIT_SOURCE_URI} ${BUILDER_ROOT}
 
@@ -63,20 +54,6 @@ haveged -w 1024
 gsutil rm ${REMOTE_IMAGE}
 ./build-gce-arch.py ${SCRIPT_PARAMS}
 
-function SaveLogForRedhat {
-  journalctl > builder.log
-}
-
-function SaveLogForDebian {
-  cat /var/log/syslog | grep -o "startupscript.*" > builder.log
-}
-
-if [ -f /etc/redhat-release ]
-then
-  SaveLogForRedhat
-else
-  SaveLogForDebian
-fi
-
+cat /var/log/syslog | grep -o "startup-script.*" > builder.log
 gsutil cp builder.log ${REMOTE_IMAGE}.log
 gcloud compute -q instances delete ${INSTANCE_NAME} --zone ${ZONE_NAME}
