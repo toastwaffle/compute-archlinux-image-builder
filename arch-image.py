@@ -173,8 +173,7 @@ kernel.perf_event_paranoid=2
 ETC_PAM_D_PASSWD = '''
 #%PAM-1.0
 password  required pam_cracklib.so difok=2 minlen=8 dcredit=2 ocredit=2 retry=3
-password  required pam_unix.so sha512 shadow nullok
-password  required pam_tally.so even_deny_root_account deny=3 lock_time=5 unlock_time=3600
+password  required pam_unix.so sha512 shadow use_authtok
 '''
 
 ETC_SUDOERS_D_ADD_GROUP_ADM = '''
