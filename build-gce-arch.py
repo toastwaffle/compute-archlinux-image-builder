@@ -18,21 +18,54 @@
 import argparse
 import os
 import logging
-import sys
 from datetime import date
 
 import utils
 
-COMPUTE_IMAGE_PACKAGES_GIT_URL = (
-    'https://github.com/GoogleCloudPlatform/compute-image-packages.git')
-IMAGE_FILE='disk.raw'
-SETUP_PACKAGES_ESSENTIAL = 'grep file'.split()
-SETUP_PACKAGES = ('pacman wget gcc make parted git setconf libaio sudo '
-                 'fakeroot arch-install-scripts').split()
-IMAGE_PACKAGES = ('base tar wget '
-                  'curl sudo mkinitcpio syslinux dhcp ethtool irqbalance '
-                  'ntp psmisc openssh udev less bash-completion zip unzip '
-                  'python2 python3').split()
+IMAGE_FILE = 'disk.raw'
+SETUP_PACKAGES = [
+    'arch-install-scripts',
+    'ceph',
+    'fakeroot',
+    'file',
+    'gcc',
+    'git',
+    'grep',
+    'libaio',
+    'liburcu',
+    'make',
+    'pacman',
+    'parted',
+    'setconf',
+    'sudo',
+    'wget',
+]
+IMAGE_PACKAGES = [
+    'base',
+    'base-devel',
+    'bash-completion',
+    'curl',
+    'dhcp',
+    'ethtool',
+    'git',
+    'haveged',
+    'irqbalance',
+    'less',
+    'mkinitcpio',
+    'ntp',
+    'openssh',
+    'psmisc',
+    'python2',
+    'python2-boto',
+    'python3',
+    'sudo',
+    'syslinux',
+    'tar',
+    'udev',
+    'unzip',
+    'wget',
+    'zip',
+]
 
 
 def main():
@@ -93,7 +126,6 @@ def CreateArchImage(args, aur_packages):
 def ConfigureArchInstall(args, mount_path, parent_path, disk_uuid, aur_packages):
   relative_builder_path = utils.CopyBuilder(mount_path)
   packages_dir = utils.CreateTempDirectory(mount_path)
-  utils.Run(['git', 'clone', COMPUTE_IMAGE_PACKAGES_GIT_URL, packages_dir])
   utils.CreateDirectory(os.path.join(mount_path, ''))
   for aur_package in aur_packages:
     utils.CopyFiles(aur_package, packages_dir + '/')
@@ -120,7 +152,6 @@ def ConfigureArchInstall(args, mount_path, parent_path, disk_uuid, aur_packages)
 def InstallPackagesOnHostMachine():
   aur_packages = []
   utils.UpdatePacmanDatabase()
-  utils.InstallPackages(SETUP_PACKAGES_ESSENTIAL)
   utils.InstallPackages(SETUP_PACKAGES)
   utils.UpdateAllPackages()
   aur_packages.append(utils.AurInstall(name='multipath-tools-git'))
