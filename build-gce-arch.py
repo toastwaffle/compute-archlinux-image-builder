@@ -73,7 +73,7 @@ def main():
   utils.SetupLogging(quiet=args.quiet, verbose=args.verbose)
   logging.info('Arch Linux Image Builder')
   logging.info('========================')
-  
+
   nobody_tmp_dir = utils.CreateTempDirectory()
   utils.ChangeDirectoryOwner('nobody', nobody_tmp_dir)
 
@@ -133,15 +133,15 @@ def ConfigureArchInstall(args, mount_path, parent_path, disk_uuid, aur_packages)
     utils.CopyFiles(aur_package, packages_dir + '/')
   packages_dir = os.path.relpath(packages_dir, mount_path)
   params = {
-    'packages_dir': '/%s' % packages_dir,
-    'device': parent_path,
-    'disk_uuid': disk_uuid,
-    'accounts': args.accounts,
-    'debugmode': args.debug,
-    'quiet': args.quiet,
-    'verbose': args.verbose,
-    'packages': args.packages,
-    'size_gb': args.size_gb
+      'packages_dir': '/%s' % packages_dir,
+      'device': parent_path,
+      'disk_uuid': disk_uuid,
+      'accounts': args.accounts,
+      'debugmode': args.debug,
+      'quiet': args.quiet,
+      'verbose': args.verbose,
+      'packages': args.packages,
+      'size_gb': args.size_gb
   }
   config_arch_py = os.path.join(
       '/', relative_builder_path, 'arch-image.py')

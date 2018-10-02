@@ -306,7 +306,7 @@ def InstallBootloader(device, uuid, debugmode):
   utils.Run(['fdisk', '-l', device])
   utils.Run(['dd', 'bs=440', 'count=1', 'conv=notrunc',
              'if=/usr/lib/syslinux/bios/mbr.bin', 'of=%s' % device])
-  
+
   boot_params = [
       'console=ttyS0,38400',
       'CONFIG_KVM_GUEST=y',
@@ -343,7 +343,7 @@ def InstallBootloader(device, uuid, debugmode):
 def DisableUnusedServices():
   utils.DisableService('getty@tty1.service')
   utils.DisableService('graphical.target')
-  
+
 def ForwardSystemdToConsole():
   utils.LogStep('Installing syslinux bootloader')
   utils.AppendFile('/etc/systemd/journald.conf', 'ForwardToConsole=yes')
@@ -416,6 +416,7 @@ def ConfigureSecurity():
 
   utils.LogStep('Enable haveged')
   utils.EnableService('haveged.service')
+
 
 def ConfigureSerialPortOutput():
   # https://wiki.archlinux.org/index.php/working_with_the_serial_console
