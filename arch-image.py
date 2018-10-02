@@ -248,7 +248,7 @@ def main():
   SetupFail2ban()
   SetupAccounts(args)
   InstallImportedPackages(args['packages_dir'])
-  InstallGcePackages(args['packages_dir'])
+  EnableComputeImageServices()
   ConfigMessageOfTheDay()
   ConfigureSecurity()
   ConfigureSerialPortOutput()
@@ -432,44 +432,13 @@ def InstallImportedPackages(packages_dir):
   utils.DeleteDirectory(packages_dir)
 
 
-def InstallGcePackages(packages_dir):
-  try:
-    InstallGoogleCloudSdk()
-  except:
-    pass
-  try:
-    InstallComputeImagePackages(packages_dir)
-  except:
-    pass
-
-
-def InstallComputeImagePackages(packages_dir):
-  utils.LogStep('Install compute-image-packages')
-  utils.Run(["egrep -lRZ 'python' %s | "
-             "xargs -0 -l sed -i -e '/#!.*python/c\#!/usr/bin/env python2'" %
-             packages_dir],
-            shell=True)
-  utils.CopyFiles(os.path.join(packages_dir, 'google-daemon', '*'), '/')
-  utils.CopyFiles(os.path.join(packages_dir, 'google-startup-scripts', '*'),
-                  '/')
-  utils.SecureDeleteFile('/README.md')
-  # TODO: Fix gcimagebundle does not work with Arch yet.
-  #InstallGcimagebundle(packages_dir)
-  
-  # Patch Google services to run after the network is actually available.
-  PatchGoogleSystemdService(
-      '/usr/lib/systemd/system/google-startup-scripts.service')
-  PatchGoogleSystemdService(
-      '/usr/lib/systemd/system/google-accounts-manager.service')
-  PatchGoogleSystemdService(
-      '/usr/lib/systemd/system/google-address-manager.service')
-  PatchGoogleSystemdService(
-      '/usr/lib/systemd/system/google.service')
-  utils.EnableService('google-accounts-manager.service')
-  utils.EnableService('google-address-manager.service')
-  utils.EnableService('google.service')
+def EnableComputeImageServices():
+  utils.EnableService('google-accounts-daemon.service')
+  utils.EnableService('google-clock-skew-daemon.service')
+  utils.EnableService('google-instance-setup.service')
+  utils.EnableService('google-network-daemon.service')
+  utils.EnableService('google-shutdown-scripts.service')
   utils.EnableService('google-startup-scripts.service')
-  utils.DeleteDirectory(packages_dir)
 
 
 def InstallGcimagebundle(packages_dir):
@@ -478,40 +447,6 @@ def InstallGcimagebundle(packages_dir):
       GCIMAGEBUNDLE_ARCH_PY)
   utils.Run(['python2', 'setup.py', 'install'],
             cwd=os.path.join(packages_dir, 'gcimagebundle'))
-
-
-def PatchGoogleSystemdService(file_path):
-  utils.ReplaceLine(file_path,
-                    'After=network.target', 'After=network-online.target')
-  utils.ReplaceLine(file_path,
-                    'Requires=network.target', 'Requires=network-online.target')
-
-
-def InstallGoogleCloudSdk():
-  # TODO: There's a google-cloud-sdk in AUR which should be used
-  # but it's not optimal for cloud use. The image is too large.
-  utils.LogStep('Install Google Cloud SDK')
-  usr_share_google = '/usr/share/google'
-  archive = os.path.join(usr_share_google, 'google-cloud-sdk.zip')
-  unzip_dir = os.path.join(usr_share_google, 'google-cloud-sdk')
-  utils.CreateDirectory(usr_share_google)
-  utils.DownloadFile(
-      'https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip', archive)
-  utils.Run(['unzip', archive, '-d', usr_share_google])
-  utils.AppendFile('/etc/bash.bashrc',
-                   'export CLOUDSDK_PYTHON=/usr/bin/python2')
-  utils.Run([os.path.join(unzip_dir, 'install.sh'),
-             '--usage-reporting', 'false',
-             '--bash-completion', 'true',
-             '--disable-installation-options',
-             '--rc-path', '/etc/bash.bashrc',
-             '--path-update', 'true'],
-            cwd=unzip_dir,
-            env={'CLOUDSDK_PYTHON': '/usr/bin/python2'})
-  utils.Symlink(os.path.join(unzip_dir, 'bin/gcloud'), '/usr/bin/gcloud')
-  utils.Symlink(os.path.join(unzip_dir, 'bin/gcutil'), '/usr/bin/gcutil')
-  utils.Symlink(os.path.join(unzip_dir, 'bin/gsutil'), '/usr/bin/gsutil')
-  utils.SecureDeleteFile(archive)
 
 
 def ConfigMessageOfTheDay():
