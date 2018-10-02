@@ -272,7 +272,6 @@ def OptimizePackages():
   utils.LogStep('Cleanup Cached Package Data')
   utils.Pacman(['-Syu'])
   utils.Pacman(['-Sc'])
-  utils.Run(['pacman-optimize'])
 
 
 def SetupLocale():
