@@ -287,7 +287,7 @@ def ParseArgs():
   parser.add_argument('--fs_type',
                       dest='fs_type',
                       default='ext4',
-                      help='Verbose console output.',
+                      help='Filesystem to use for image.',
                       action='store_true')
   return parser.parse_args()
 
