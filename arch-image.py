@@ -245,7 +245,7 @@ def main():
   SetupNtpServer()
   SetupNetwork()
   SetupSsh()
-  #SetupFail2ban()
+  SetupFail2ban()
   SetupAccounts(args)
   #InstallImportedPackages(args['packages_dir'])
   InstallGcePackages(args['packages_dir'])
