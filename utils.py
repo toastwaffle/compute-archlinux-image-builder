@@ -248,15 +248,20 @@ def ChangeDirectoryOwner(username, directory):
   SudoRun(['chown', '-R', username, directory])
 
 
-def AurInstall(name=None, pkbuild_url=None):
-  if name:
-    pkbuild_url = 'https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=%s' % (name.lower())
+def AurBuild(name, makepkg_env=None):
   workspace_dir = CreateTempDirectory()
-  DownloadFile(pkbuild_url, os.path.join(workspace_dir, 'PKGBUILD'))
+  archive_url = 'https://aur.archlinux.org/cgit/aur.git/snapshot/%s.tar.gz' % (name.lower(),)
+  archive_path = os.path.join(workspace_dir, '%s.tar.gz' % (name.lower(),))
+  build_dir = os.path.join(workspace_dir, name.lower())
+  DownloadFile(archive_url, archive_path)
+  Untar(archive_path, workspace_dir)
   ChangeDirectoryOwner(BUILDER_USER, workspace_dir)
-  Run(['runuser', '-m', BUILDER_USER, '-c', 'makepkg'], cwd=workspace_dir)
-  tarball = glob.glob(os.path.join(workspace_dir, '*.tar*'))
-  tarball = tarball[0]
+  Run(['runuser', '-m', BUILDER_USER, '-c', 'makepkg'], cwd=build_dir, env=makepkg_env)
+  return glob.glob(os.path.join(build_dir, '*.pkg.tar*'))[0], build_dir
+
+
+def AurInstall(name, makepkg_env=None):
+  tarball, workspace_dir = AurBuild(name, makepkg_env)
   Pacman(['-U', tarball], cwd=workspace_dir)
 
   return tarball
