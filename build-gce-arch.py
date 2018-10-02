@@ -74,22 +74,24 @@ def main():
   logging.info('Arch Linux Image Builder')
   logging.info('========================')
   
-  workspace_dir = None
-  image_file = None
-  try:
-    aur_packages = InstallPackagesOnHostMachine()
-    image_path = CreateArchImage(args, aur_packages)
-    image_name, image_filename, image_description = GetImageNameAndDescription(
-        args.outfile)
-    image_file = SaveImage(image_path, image_filename)
-    if args.upload and image_file:
-      UploadImage(image_file, args.upload, make_public=args.public)
-      if args.register:
-        AddImageToComputeEngineProject(
-            image_name, args.upload, image_description)
-  finally:
-    if not args.nocleanup and workspace_dir:
-      utils.DeleteDirectory(workspace_dir)
+  nobody_tmp_dir = utils.CreateTempDirectory()
+  utils.ChangeDirectoryOwner('nobody', nobody_tmp_dir)
+
+  aur_packages = InstallPackagesOnHostMachine()
+  aur_packages.append(utils.AurBuild('google-cloud-sdk',
+                                     {'CLOUDSDK_CONFIG': nobody_tmp_dir})[0])
+  aur_packages.append(utils.AurBuild('gce-compute-image-packages')[0])
+  aur_packages.append(utils.AurBuild('google-compute-engine-oslogin-git')[0])
+  aur_packages.append(utils.AurBuild('python2-google-compute-engine-git')[0])
+  image_path = CreateArchImage(args, aur_packages)
+  image_name, image_filename, image_description = GetImageNameAndDescription(
+      args.outfile)
+  image_file = SaveImage(image_path, image_filename)
+  if args.upload and image_file:
+    UploadImage(image_file, args.upload, make_public=args.public)
+    if args.register:
+      AddImageToComputeEngineProject(
+          image_name, args.upload, image_description)
 
 
 def CreateArchImage(args, aur_packages):
