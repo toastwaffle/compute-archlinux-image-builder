@@ -414,6 +414,8 @@ def ConfigureSecurity():
   utils.Run(['chown', 'root:root', '/etc/sudoers.d/add-group-adm'])
   utils.Run(['chmod', '0440', '/etc/sudoers.d/add-group-adm'])
 
+  utils.LogStep('Enable haveged')
+  utils.EnableService('haveged.service')
 
 def ConfigureSerialPortOutput():
   # https://wiki.archlinux.org/index.php/working_with_the_serial_console
